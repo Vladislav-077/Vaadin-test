@@ -3,12 +3,15 @@ import com.vaadin.data.Item;
 import com.vaadin.event.FieldEvents;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.*;
-import my.vaadin.modalWindows.Button.PopUpButton;
+
 
 import java.util.Date;
 import java.util.Locale;
 
 public class SubWindowsUI extends Window {
+        Button buttonClose;
+        Button buttonCreate;
+
         public SubWindowsUI(String caption, Item users) {
 
 
@@ -25,19 +28,19 @@ public class SubWindowsUI extends Window {
 
                 //Базовое содержимое окна.
                 VerticalLayout mainLayout = new VerticalLayout(); // Создаем вертикальный Layout
-//                mainLayout.addComponents(new Label("Текст в модальном окне"), new Button("Кнопка"));
-                mainLayout.setMargin(true); // Вшеншие отствпы.
-                setContent(mainLayout); //Для отображение элементов в Layout
+                mainLayout.setMargin(true); // Вшеншие отступы.
                 setClosable(true);// Кнопка закрытия.
+                setContent(mainLayout); //Для отображение элементов в Layout
 
-                VerticalLayout VerticalLayout = crateFormLayout();
-                mainLayout.addComponent(VerticalLayout);
-                mainLayout.setComponentAlignment(VerticalLayout, Alignment.MIDDLE_CENTER);
+
+                VerticalLayout crateFormLayout = crateFormLayout(users);
+                mainLayout.addComponent(crateFormLayout);
+                mainLayout.setComponentAlignment(crateFormLayout, Alignment.MIDDLE_CENTER);
 
 
         }
         /* Создание панели для ввода данных */
-        public VerticalLayout crateFormLayout() {
+        public VerticalLayout crateFormLayout(Item users) {
 
                 VerticalLayout verticalLayoutMainForm = new VerticalLayout();
                 FormLayout userFormContent = new FormLayout();
@@ -80,46 +83,46 @@ public class SubWindowsUI extends Window {
 
                 //Дата рождения. PopUp
                 PopupDateField popupDateField  = new PopupDateField("Дата рождения");
-                popupDateField.setWidth(70,Unit.PERCENTAGE);
+                popupDateField.setWidth(100,Unit.PERCENTAGE);
                 popupDateField.setIcon(FontAwesome.BIRTHDAY_CAKE);
-                popupDateField.setTextFieldEnabled(true);
+                popupDateField.setTextFieldEnabled(false);
                 popupDateField.setValue(new Date());
-                popupDateField.setDateFormat("d-MM-yyyy");
+                popupDateField.setDateFormat("dd-MM-yyyy");
                 popupDateField.setBuffered(true);
                 popupDateField.setLocale(new Locale("ru"));
-
-
-                //Кнопки которые будут распологаться снизу.
-                PopUpButton buttonAddUser = new PopUpButton("Добавить",70,FontAwesome.CHECK);
-                buttonAddUser.addClickListener(new Button.ClickListener() {
-                        @Override
-                        public void buttonClick(Button.ClickEvent event) {
-                                // Not really necessary to remove the listeners
-                                for (Object l: firstName.getListeners(FieldEvents.BlurEvent.class))
-                                        firstName.removeBlurListener((FieldEvents.BlurListener) l);
-                                for (Object l: lastName.getListeners(FieldEvents.BlurEvent.class))
-                                        lastName.removeBlurListener((FieldEvents.BlurListener) l);
-
-                                Notification.show("Bling!");
-                        }
-                });
-
-                // Кнопка закрытия модального окна.
-                PopUpButton buttonClose = new PopUpButton("Закрыть",70,FontAwesome.CLOSE);
-                buttonClose.addClickListener(new Button.ClickListener() {
-                        public void buttonClick(Button.ClickEvent event) {
-                                close(); // Close the sub-window
-                        }
-                });
 
 
                 // Layout отвечающий за кнопки.
                 HorizontalLayout horizontalLayoutForButton = new HorizontalLayout();
                 horizontalLayoutForButton.setWidth(100,Unit.PERCENTAGE);
-                horizontalLayoutForButton.addComponents(buttonAddUser,buttonClose);
-                horizontalLayoutForButton.setComponentAlignment(buttonAddUser,Alignment.MIDDLE_CENTER);
-                horizontalLayoutForButton.setComponentAlignment(buttonClose,Alignment.MIDDLE_CENTER);
                 horizontalLayoutForButton.setSpacing(true);
+
+                if (users == null) {
+                        System.out.println("Кнопка  (закрыть) - (добавить)");
+                        buttonClose = new Button("Закрыть",FontAwesome.CLOSE);
+                        buttonClose.setWidth(100,Unit.PERCENTAGE);
+                        buttonClose(buttonClose);
+
+                        buttonCreate = new Button("Добавить", FontAwesome.CHECK);
+                        buttonCreate.setWidth(100,Unit.PERCENTAGE);
+                        buttonCreateUser(buttonCreate);
+                        horizontalLayoutForButton.addComponents(buttonCreate,buttonClose);
+                        //Выравнивание.
+                        horizontalLayoutForButton.setComponentAlignment(buttonCreate,Alignment.MIDDLE_CENTER);
+                        horizontalLayoutForButton.setComponentAlignment(buttonClose,Alignment.MIDDLE_CENTER);
+                }
+                else {
+                        System.out.println("Создание пользователя класс SupWindowsUI");
+                        System.out.println("Кнопка  (закрыть)");
+                        buttonClose = new Button("Закрыть",FontAwesome.CLOSE);
+                        buttonClose.setWidth(100,Unit.PERCENTAGE);
+                        buttonClose(buttonClose);
+                        horizontalLayoutForButton.addComponent(buttonClose);
+                        //Выравнивание.
+                        horizontalLayoutForButton.setComponentAlignment(buttonClose,Alignment.MIDDLE_CENTER);
+
+                }
+
 
                 // Добавляем Field на форму.
                 userFormContent.addComponents(firstName,lastName,otchestvo,email,telephone,pol,popupDateField);
@@ -128,7 +131,36 @@ public class SubWindowsUI extends Window {
                 verticalLayoutMainForm.addComponents(userFormContent,horizontalLayoutForButton);
                 verticalLayoutMainForm.setComponentAlignment(userFormContent, Alignment.MIDDLE_CENTER);
                 verticalLayoutMainForm.setComponentAlignment(horizontalLayoutForButton, Alignment.MIDDLE_CENTER);
+
                 return verticalLayoutMainForm;
+        }
+
+
+        public void buttonClose(Button buttonClose) {
+                buttonClose.addClickListener(new Button.ClickListener() {
+                        public void buttonClick(Button.ClickEvent event) {
+                                close(); // Close the sub-window
+                        }
+                });
+
+        }
+
+        public void buttonCreateUser(Button addButtonUser) {
+                addButtonUser = new Button("Добавить", FontAwesome.CHECK);
+                addButtonUser.setWidth(100,Unit.PERCENTAGE);
+                addButtonUser.addClickListener(
+                        new Button.ClickListener() {
+                        @Override
+                        public void buttonClick(Button.ClickEvent event) {
+//                                // Not really necessary to remove the listeners
+//                                for (Object l: firstName.getListeners(FieldEvents.BlurEvent.class))
+//                                        firstName.removeBlurListener((FieldEvents.BlurListener) l);
+//                                for (Object l: lastName.getListeners(FieldEvents.BlurEvent.class))
+//                                        lastName.removeBlurListener((FieldEvents.BlurListener) l);
+
+                                Notification.show("Bling!");
+                        }
+                });
         }
 
 }

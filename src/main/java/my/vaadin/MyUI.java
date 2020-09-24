@@ -19,7 +19,6 @@ import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServlet;
 import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.*;
-import my.vaadin.modalWindows.Button.PopUpButton;
 import my.vaadin.modalWindows.SubWindowsUI;
 import pojo.Users;
 
@@ -41,29 +40,27 @@ public class MyUI extends UI {
     public void init(VaadinRequest request) {
 
         // Горизонтальный layout для работы с кнопками расположены с верху таблицы.
-        HorizontalLayout buttonLayout = new HorizontalLayout();
-        buttonLayout.setWidth(50, Unit.PERCENTAGE);
-        buttonLayout.setSpacing(true);
+        HorizontalLayout horizontalLayoutForButton = new HorizontalLayout();
 
         //Горизонтвальный layout который в котором расположена таблица.
         VerticalLayout verticalLayoutGridAndButton = new VerticalLayout();
-        verticalLayoutGridAndButton.setWidth(100,Unit.PERCENTAGE);
 
-
-
+        //Инициализируем метод который использует Layout созданные выше.
+        gridCollectionUsers(verticalLayoutGridAndButton,horizontalLayoutForButton);
 
         //Основной вертикальный Layout в котором распологаются все остальные Layout.
-        VerticalLayout verticalLayout = new VerticalLayout();
-        verticalLayout.setSizeFull(); // Размерность во весь экран.
-        verticalLayout.setSpacing(true);
-        verticalLayout.addComponent(verticalLayoutGridAndButton); // Добавляем элементы
-        verticalLayout.setComponentAlignment(verticalLayoutGridAndButton, Alignment.MIDDLE_CENTER);
-        gridCollectionUsers(verticalLayoutGridAndButton, buttonLayout); // Методл для создания таблицы.
-        setContent(verticalLayout); // SetContent
+        VerticalLayout verticalLayoutMain = new VerticalLayout();
+        verticalLayoutMain.setSizeFull(); // Размерность во весь экран.
+        verticalLayoutMain.setSpacing(true);
+        verticalLayoutMain.addComponents(verticalLayoutGridAndButton); // Добавляем элементы
+        verticalLayoutMain.setComponentAlignment(verticalLayoutGridAndButton, Alignment.MIDDLE_CENTER);
+        setContent(verticalLayoutMain); // SetContent
+
+
     }
 
 
-    public void gridCollectionUsers(VerticalLayout verticalLayout, HorizontalLayout buttonLayout) {
+    public void gridCollectionUsers(VerticalLayout verticalLayoutGridAndButton, HorizontalLayout horizontalLayoutForButton) {
 
         //Коллекция Users
         date = new Date();
@@ -116,7 +113,7 @@ public class MyUI extends UI {
 
         grid.setColumnOrder("firstName","lastName","otchestvo","email","telephone"); // Задается порядок полонок.
         grid.setSelectionMode (Grid.SelectionMode.SINGLE); // В таблице можно выделить только одну запись.
-        grid.setWidth(55, Unit.PERCENTAGE);
+        grid.setWidth(70, Unit.PERCENTAGE);
 
         //Определение размера таблицы
         grid.setHeightMode(HeightMode.ROW);
@@ -130,83 +127,83 @@ public class MyUI extends UI {
 //            Notification.show ("Выбран: " + item.getBean ().getFirstName() + " " + item.getBean().getLastName() + " " + item.getBean().getOtchestvo());
 //        });
 
-        //Открытия окна редактирования при двойном нажатии на запись.
+        // Предвыбор в таблице.
+        Grid.SingleSelectionModel selection = (Grid.SingleSelectionModel) grid.getSelectionModel();
+        selection.select(grid.getContainerDataSource().getIdByIndex(2));
+
+
+        //Кнопка создать
+        Button createButton = new Button("Создать",FontAwesome.FILE);
+        createButton.setDescription("Создать пользователя");
+        createButton.setWidth(100,Unit.PERCENTAGE);
+        createNewUserForGrid(createButton);
+
+        // Кнопка удалить
+        Button deleteButton = new Button("Удалить",FontAwesome.CLOSE);
+        deleteButton.setDescription("Удалить пользователя");
+        deleteButton.setWidth(100,Unit.PERCENTAGE);
+        deleteButton.setEnabled(false);
+        deleteUsersForGrid(deleteButton,grid); //Логика кнопки удаления.
+
+        //Действие при двойном нажатии на Grid, форма редактирования записи User
         grid.addItemClickListener(itemClickEvent -> {
+            grid.getContainerDataSource().getItem(grid.getSelectedRow());
+            Item users = usersBeanItemContainer.getItem(itemClickEvent.getItemId()); // Получение выбранного пользователя.!
             if (itemClickEvent.isDoubleClick()) {
                 // Добавление модального окна.
                 System.out.println("Открытие PopUp окна для редактирования пользователя");
-
-                grid.getContainerDataSource().getItem(grid.getSelectedRow());
-                Item users = usersBeanItemContainer.getItem(itemClickEvent.getItemId()); // Получение выбранного пользователя.!
                 SubWindowsUI sub = new SubWindowsUI("Форма редиктирования пользователя",users);
                 UI.getCurrent().addWindow(sub); //
             }
         });
 
-        // Предвыбор в таблице.
-        Grid.SingleSelectionModel selection =
-                (Grid.SingleSelectionModel) grid.getSelectionModel();
-        selection.select( // Select 3rd item
-                grid.getContainerDataSource().getIdByIndex(2));
+        //Добавляем в горизонтальный Layout созданные кнопки.
+        horizontalLayoutForButton.addComponents(createButton,deleteButton);
+        horizontalLayoutForButton.setWidth(70,Unit.PERCENTAGE);
+        horizontalLayoutForButton.setSpacing(true);
 
-
-
-        gridButton(buttonLayout); // Метод для создания кнопок.
-        verticalLayout.addComponents(buttonLayout,grid); //Добавление элементов
+        //Соединяем в вертикальный Layout, созданные кнопки и таблицу.
+        verticalLayoutGridAndButton.addComponents(horizontalLayoutForButton,grid);
 
         // Выравнивание.
-        verticalLayout.setComponentAlignment(grid, Alignment.MIDDLE_CENTER);
-        verticalLayout.setComponentAlignment(buttonLayout,Alignment.MIDDLE_CENTER);
+        verticalLayoutGridAndButton.setComponentAlignment(grid, Alignment.MIDDLE_CENTER);
+        verticalLayoutGridAndButton.setComponentAlignment(horizontalLayoutForButton,Alignment.MIDDLE_CENTER);
 
 
     }
 
-    public void gridButton(HorizontalLayout buttonLayout) {
-
-        //Кнопка создать
-        PopUpButton createButton = new PopUpButton("Создать",100,"Создать пользователя", FontAwesome.FILE);
-
-        // Кнопка удалить
-        PopUpButton deleteButton = new PopUpButton("Удалить", 50,"Удалить пользователя", FontAwesome.CLOSE);
-
-
-//        Button deleteButton = new Button("Удалить", e -> {
-//
-//            for (Object itemId: grid.getSelectedRows())
-//                grid.getContainerDataSource().removeItem(itemId);
-//                grid.getSelectionModel().reset();
-//        });
-//
-//        deleteButton.setEnabled(false); // Отключить по умолчанию.
-//        deleteButton.setWidth(100, Unit.PERCENTAGE);
-//        deleteButton.setDescription("Удалить пользователя");
-//        grid.addSelectionListener(itemClickEvent -> {
-//            deleteButton.setEnabled (grid.getSelectedRows().size() > 0); // Уменьшение таблицы.
-//        });
-
-
-
+    public void deleteUsersForGrid(Button deleteButton,Grid grid) {
+        grid.addSelectionListener(itemClickEvent -> {
+            deleteButton.setEnabled (grid.getSelectedRows().size() > 0);
+        });
 
         //Логика кнопки удаления + требутся удалять пользователя из таблицы.
         deleteButton.addClickListener(listener->{
+            deleteButton.setEnabled(true);
             System.out.println("Удалить");
+            for (Object itemId: grid.getSelectedRows()) {
+                grid.getContainerDataSource().removeItem(itemId);
+                grid.getSelectionModel().reset();
+
+            }
         });
 
+    }
 
+    public void createNewUserForGrid(Button createButton) {
         createButton.addClickListener(listener->{
             System.out.println("Создать");
+
             // Добавление модального окна.
             SubWindowsUI sub = new SubWindowsUI("Форма создания нового полозователя", null);
             UI.getCurrent().addWindow(sub); //
-
         });
 
-        buttonLayout.addComponents(createButton,deleteButton); // Добавление кнопок добавить и удалить в Layout
 
     }
 
 
-@WebServlet(urlPatterns = "/*", name = "MyUIServlet", asyncSupported = true)
+    @WebServlet(urlPatterns = "/*", name = "MyUIServlet", asyncSupported = true)
     @VaadinServletConfiguration(ui = MyUI.class, productionMode = false)
     public static class MyUIServlet extends VaadinServlet {
     }
