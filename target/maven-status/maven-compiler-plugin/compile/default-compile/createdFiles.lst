@@ -1,9 +1,7 @@
-my/vaadin/modalWindows/Panel/Panel.class
+my/vaadin/modalWindows/SubWindowsUI$2.class
 my/vaadin/modalWindows/SubWindowsUI.class
-my/vaadin/modalWindows/Panel/Panel$3.class
 my/vaadin/modalWindows/SubWindowsUI$1.class
-my/vaadin/modalWindows/Panel/Panel$1.class
+my/vaadin/modalWindows/Button/PopUpButton.class
 my/vaadin/MyUI.class
 pojo/Users.class
-my/vaadin/modalWindows/Panel/Panel$2.class
 my/vaadin/MyUI$MyUIServlet.class
