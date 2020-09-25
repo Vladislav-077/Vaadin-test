@@ -12,28 +12,32 @@ import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
 import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.data.Item;
-import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServlet;
 import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.*;
+import com.vaadin.ui.renderers.DateRenderer;
+import com.vaadin.ui.renderers.Renderer;
+import lombok.SneakyThrows;
 import my.vaadin.modalWindows.SubWindowsUI;
 import pojo.Users;
 
 
 import javax.servlet.annotation.WebServlet;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 
-@Title("My VaadinApp")
+@Title("Зарегистрированные пользователи")
 @Theme("mytheme")
 public class MyUI extends UI {
     Grid grid; // Создание таблицы.
-    Date date;
     Collection<Users> usersArrayList;
+    SimpleDateFormat simpleDateFormat;
     BeanItemContainer<Users> usersBeanItemContainer;
 
     @Override
@@ -42,7 +46,7 @@ public class MyUI extends UI {
         // Горизонтальный layout для работы с кнопками расположены с верху таблицы.
         HorizontalLayout horizontalLayoutForButton = new HorizontalLayout();
 
-        //Горизонтвальный layout который в котором расположена таблица.
+        //Горизонтвальный layout который в котором расположена таблица и кнопки
         VerticalLayout verticalLayoutGridAndButton = new VerticalLayout();
 
         //Инициализируем метод который использует Layout созданные выше.
@@ -63,13 +67,18 @@ public class MyUI extends UI {
     public void gridCollectionUsers(VerticalLayout verticalLayoutGridAndButton, HorizontalLayout horizontalLayoutForButton) {
 
         //Коллекция Users
-        date = new Date();
+        simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
         usersArrayList = new ArrayList<>();
-        usersArrayList.add(new Users("Владислав","Абовян","Евгеньевич","blad_04@mail.ru","89152091205","Мужчина",date));
-        usersArrayList.add(new Users("Егор","Муганов","Иванович","egor_04@mail.ru","89152091205","Мужчина",date));
-        usersArrayList.add(new Users("Антон","Антон","Антонович","anton_04@mail.ru","89152091205","Мужчина",date));
-        usersArrayList.add(new Users("Илья","Ильин","Ильич","ilya_04@mail.ru","89152091205","Мужчина",date));
-        usersArrayList.add(new Users("Григорий","Мелихов","Анатольевич","grigor_04@mail.ru","89152091205","Мужчина",date));
+        try {
+            usersArrayList.add(new Users("Владислав", "Абовян", "Евгеньевич", "blad_04@mail.ru", "89152091205", "Мужской", simpleDateFormat.parse("22/08/1997")));
+            usersArrayList.add(new Users("Егор", "Муганов", "Иванович", "egor_04@mail.ru", "89152091205", "Мужской", simpleDateFormat.parse("05/08/2020")));
+            usersArrayList.add(new Users("Антон", "Антон", "Антонович", "anton_04@mail.ru", "89152091205", "Мужской", simpleDateFormat.parse("01/03/1998")));
+            usersArrayList.add(new Users("Илья", "Ильин", "Ильич", "ilya_04@mail.ru", "89152091205", "Мужской", simpleDateFormat.parse("22/05/2003")));
+            usersArrayList.add(new Users("Григорий", "Мелихов", "Анатольевич", "grigor_04@mail.ru", "89152091205", "Женский", simpleDateFormat.parse("30/07/1974")));
+        }
+        catch (Exception e ) {
+            System.out.println(e.getStackTrace());
+        }
 
 
 
@@ -78,9 +87,9 @@ public class MyUI extends UI {
 
         // Создаем сетку привязанную к контейнеру.
         grid = new Grid(usersBeanItemContainer); //Инициализация объекта Grid, с помещенным контейнером.
-        grid.setFrozenColumnCount(5); //Запретить возможность двигать колонки. НЕ РАБОТАЕТ.
+//        grid.getColumn("").setRenderer()
         grid.setEditorEnabled(false);
-        grid.setCaption("Зарегистрированные пользователи"); // Устанавливаем заголовок таблицы.
+//        grid.setCaption("Зарегистрированные пользователи"); // Устанавливаем заголовок таблицы.
 
         // Задаем название колонок
         Grid.Column firstNameColumn = grid.getColumn("firstName");
@@ -110,22 +119,18 @@ public class MyUI extends UI {
         Grid.Column birthdayColumn = grid.getColumn("birthday");
         birthdayColumn.setHeaderCaption("Дата рождения");
         birthdayColumn.setResizable(false);
+        birthdayColumn.setRenderer((Renderer) new DateRenderer("%1$td/%1$tm/%1$tY"));
 
-        grid.setColumnOrder("firstName","lastName","otchestvo","email","telephone"); // Задается порядок полонок.
+        grid.setColumnOrder("firstName","lastName","otchestvo","email","telephone","pol","birthday"); // Задается порядок полонок.
         grid.setSelectionMode (Grid.SelectionMode.SINGLE); // В таблице можно выделить только одну запись.
         grid.setWidth(70, Unit.PERCENTAGE);
+        // Alternatively, with a custom pattern:
 
         //Определение размера таблицы
         grid.setHeightMode(HeightMode.ROW);
-        grid.setHeightByRows(5);
+        grid.setHeightByRows(7);
         grid.setResponsive(false);
         grid.setSelectionMode(Grid.SelectionMode.SINGLE);//Получаем элемент выбранной строки.
-
-        // Получаем элемент выбранной строки
-//        grid.addSelectionListener (e -> {
-//            BeanItem <Users> item = usersBeanItemContainer.getItem (grid.getSelectedRow ());
-//            Notification.show ("Выбран: " + item.getBean ().getFirstName() + " " + item.getBean().getLastName() + " " + item.getBean().getOtchestvo());
-//        });
 
         // Предвыбор в таблице.
         Grid.SingleSelectionModel selection = (Grid.SingleSelectionModel) grid.getSelectionModel();
@@ -141,35 +146,45 @@ public class MyUI extends UI {
         // Кнопка удалить
         Button deleteButton = new Button("Удалить",FontAwesome.CLOSE);
         deleteButton.setDescription("Удалить пользователя");
-        deleteButton.setWidth(100,Unit.PERCENTAGE);
+        deleteButton.setWidth(80,Unit.PERCENTAGE);
         deleteButton.setEnabled(false);
         deleteUsersForGrid(deleteButton,grid); //Логика кнопки удаления.
 
         //Действие при двойном нажатии на Grid, форма редактирования записи User
-        grid.addItemClickListener(itemClickEvent -> {
-            grid.getContainerDataSource().getItem(grid.getSelectedRow());
-            Item users = usersBeanItemContainer.getItem(itemClickEvent.getItemId()); // Получение выбранного пользователя.!
-            if (itemClickEvent.isDoubleClick()) {
-                // Добавление модального окна.
-                System.out.println("Открытие PopUp окна для редактирования пользователя");
-                SubWindowsUI sub = new SubWindowsUI("Форма редиктирования пользователя",users);
-                UI.getCurrent().addWindow(sub); //
-            }
-        });
+        readSelectUserForGrid();
 
-        //Добавляем в горизонтальный Layout созданные кнопки.
-        horizontalLayoutForButton.addComponents(createButton,deleteButton);
-        horizontalLayoutForButton.setWidth(70,Unit.PERCENTAGE);
-        horizontalLayoutForButton.setSpacing(true);
+
+        //Добавляем в горизонтальный Layout horizontalLayoutAligmentButton для выравнивания кнопок.
+        HorizontalLayout horizontalLayoutAligmentButton = new HorizontalLayout(createButton,deleteButton);
+        horizontalLayoutAligmentButton.setWidth(50,Unit.PERCENTAGE);
+        horizontalLayoutAligmentButton.setSpacing(true);
+
+        horizontalLayoutForButton.addComponents(horizontalLayoutAligmentButton);
+        horizontalLayoutForButton.setComponentAlignment(horizontalLayoutAligmentButton,Alignment.MIDDLE_CENTER);
+        horizontalLayoutForButton.setSpacing(false);
+        horizontalLayoutForButton.setWidth(50,Unit.PERCENTAGE);
 
         //Соединяем в вертикальный Layout, созданные кнопки и таблицу.
         verticalLayoutGridAndButton.addComponents(horizontalLayoutForButton,grid);
+        verticalLayoutGridAndButton.setComponentAlignment(horizontalLayoutForButton,Alignment.MIDDLE_RIGHT);
+        verticalLayoutGridAndButton.setComponentAlignment(grid,Alignment.MIDDLE_CENTER); //Выравнивание таблицы по центру.
+        verticalLayoutGridAndButton.setSpacing(true);
 
-        // Выравнивание.
-        verticalLayoutGridAndButton.setComponentAlignment(grid, Alignment.MIDDLE_CENTER);
-        verticalLayoutGridAndButton.setComponentAlignment(horizontalLayoutForButton,Alignment.MIDDLE_CENTER);
 
+    }
 
+    public void readSelectUserForGrid() {
+        //Действие при двойном нажатии на Grid, форма редактирования записи User
+        grid.addItemClickListener(itemClickEvent -> {
+            grid.getContainerDataSource().getItem(grid.getSelectedRow());
+            Item user = usersBeanItemContainer.getItem(itemClickEvent.getItemId()); // Получение выбранного пользователя.!
+            if (itemClickEvent.isDoubleClick()) {
+                // Добавление модального окна.
+                System.out.println("Открытие PopUp окна для просмотра пользователя");
+                SubWindowsUI sub = new SubWindowsUI("Форма просмотра пользователя",user,grid,usersBeanItemContainer);
+                UI.getCurrent().addWindow(sub); //
+            }
+        });
     }
 
     public void deleteUsersForGrid(Button deleteButton,Grid grid) {
@@ -179,11 +194,57 @@ public class MyUI extends UI {
 
         //Логика кнопки удаления + требутся удалять пользователя из таблицы.
         deleteButton.addClickListener(listener->{
-            deleteButton.setEnabled(true);
             System.out.println("Удалить");
+            deleteButton.setEnabled(true);
             for (Object itemId: grid.getSelectedRows()) {
-                grid.getContainerDataSource().removeItem(itemId);
-                grid.getSelectionModel().reset();
+                //Открытие PopUp окна.
+                Window subWindowsDelete =  new Window("Подтвердите удаление пользователя");
+                subWindowsDelete.setHeight("250");
+                subWindowsDelete.setWidth("480");
+                subWindowsDelete.setModal(true); // Указываем, что окно должно быть модальное, данная настройка блокирует задний фон.
+                subWindowsDelete.setResizable(false);  // Запрет на растягивание окна.
+                subWindowsDelete.setDraggable(false); // Запрет на перестаскивание окна.
+                subWindowsDelete.center();
+
+
+                VerticalLayout verticalLayout = new VerticalLayout();
+                HorizontalLayout horizontalLayout = new HorizontalLayout();
+                verticalLayout.setSizeFull();
+                verticalLayout.addComponent(horizontalLayout);
+                verticalLayout.setComponentAlignment(horizontalLayout,Alignment.MIDDLE_CENTER);
+
+
+                // Кнопка отмена удаления
+                Button cancel = new Button("Отмена", FontAwesome.CLOSE);
+                cancel.setWidth(100,Unit.PERCENTAGE);
+                cancel.addClickListener(new Button.ClickListener() {
+                    @Override
+                    public void buttonClick(Button.ClickEvent clickEvent) {
+                        System.out.println("Отмена удаления пользователя");
+                        subWindowsDelete.close();
+                    }
+                });
+                // Кнопка подтверждения удаления.
+                Button deleteButtunComplite = new Button("Удалить", FontAwesome.CHECK);
+                deleteButtunComplite.setWidth(100,Unit.PERCENTAGE);
+                deleteButtunComplite.addClickListener(new Button.ClickListener() {
+                    @SneakyThrows
+                    @Override
+                    public void buttonClick(Button.ClickEvent clickEvent) {
+                        System.out.println("Подтверждение удаления пользователя");
+                        grid.getContainerDataSource().removeItem(itemId);
+                        subWindowsDelete.close();
+                        Thread.sleep(300);
+                        Notification.show("Пользователь удален!");
+                        grid.getSelectionModel().reset();
+                    }
+                });
+
+                horizontalLayout.addComponents(deleteButtunComplite,cancel);
+                horizontalLayout.setSpacing(true);
+                subWindowsDelete.setContent(verticalLayout);
+                UI.getCurrent().addWindow(subWindowsDelete);
+
 
             }
         });
@@ -195,12 +256,15 @@ public class MyUI extends UI {
             System.out.println("Создать");
 
             // Добавление модального окна.
-            SubWindowsUI sub = new SubWindowsUI("Форма создания нового полозователя", null);
+            SubWindowsUI sub = new SubWindowsUI("Форма создания нового полозователя", null,grid,usersBeanItemContainer);
             UI.getCurrent().addWindow(sub); //
         });
 
 
     }
+//    private class LocalDateTimeCustomRender extends Renderers {
+//
+//    }
 
 
     @WebServlet(urlPatterns = "/*", name = "MyUIServlet", asyncSupported = true)
