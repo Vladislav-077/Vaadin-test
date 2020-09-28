@@ -1,11 +1,11 @@
 package pojo;
 
 import lombok.Data;
-import lombok.Getter;
+
 import java.util.Date;
 
-@Getter
-public @Data class Users{
+@Data
+public class Users{
 
     private String firstName;
     private String lastName;

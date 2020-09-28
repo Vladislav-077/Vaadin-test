@@ -1,16 +1,10 @@
 package my.vaadin.modalWindows;
 import com.vaadin.data.Item;
-import com.vaadin.data.Validator;
 import com.vaadin.data.util.BeanItemContainer;
-import com.vaadin.data.validator.StringLengthValidator;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.*;
 import lombok.SneakyThrows;
 import pojo.Users;
-
-
-import javax.xml.crypto.Data;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -29,8 +23,10 @@ public class SubWindowsUI extends Window {
         final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy");
         private Grid grid;
         private BeanItemContainer<Users> usersBeanItemContainer;
+//        private Item user;
+        private String nameButton; // Данная переменная нужна для определения функции вызываемого окна.
 
-        public SubWindowsUI(String caption, Item user, Grid grid, BeanItemContainer<Users> usersBeanItemContainer) {
+        public SubWindowsUI(String caption, Item user, Grid grid, BeanItemContainer<Users> usersBeanItemContainer,String nameButton, Object itemId) {
                 super(caption); //Заголовок.
                 System.out.println(user);
                 // Размер окна.
@@ -41,6 +37,7 @@ public class SubWindowsUI extends Window {
                 this.setDraggable(false); // Запрет на перестаскивание окна.
                 this.grid = grid;
                 this.usersBeanItemContainer = usersBeanItemContainer;
+                this.nameButton = nameButton;
                 center();
 
 
@@ -53,14 +50,14 @@ public class SubWindowsUI extends Window {
                 setContent(mainLayout); //Для отображение элементов в Layout
 
 
-                VerticalLayout crateFormLayout = crateFormLayout(user);
+                VerticalLayout crateFormLayout = crateFormLayout(user, itemId);
                 mainLayout.addComponent(crateFormLayout);
                 mainLayout.setComponentAlignment(crateFormLayout, Alignment.MIDDLE_CENTER);
 
 
         }
         /* Создание панели для ввода данных */
-        public VerticalLayout crateFormLayout(Item user) {
+        public VerticalLayout crateFormLayout(Item user, Object itemId) {
 
                 Date date = new Date();
                 VerticalLayout verticalLayoutMainForm = new VerticalLayout();
@@ -131,7 +128,7 @@ public class SubWindowsUI extends Window {
 
 
                 }
-                else {
+                else if (nameButton.equals("прочитать") && user != null) {
 
                         // Create the first field which will be focused
                         firstName.setDescription("Укажите имя");
@@ -214,12 +211,96 @@ public class SubWindowsUI extends Window {
                         HorizontalLayout horizontalLayoutForButton = new HorizontalLayout();
                         horizontalLayoutForButton.setWidth(100,Unit.PERCENTAGE);
                         horizontalLayoutForButton.setSpacing(true);
-                        horizontalLayoutForButton.addComponents(buttonClose(buttonClose));
+                        horizontalLayoutForButton.addComponents(buttonCreateUser(buttonCreate, grid, usersBeanItemContainer),buttonClose(buttonClose));
 
                         // Добавляем Layout содержащий кнопки и поля.
                         verticalLayoutMainForm.addComponents(userFormContent,horizontalLayoutForButton);
                         verticalLayoutMainForm.setComponentAlignment(userFormContent, Alignment.MIDDLE_CENTER);
                         verticalLayoutMainForm.setComponentAlignment(horizontalLayoutForButton, Alignment.MIDDLE_CENTER);
+                }
+                else if (nameButton.equals("обновить") && user != null) {
+                        // Create the first field which will be focused
+                        firstName.setDescription("Укажите имя");
+//                        firstName.addValidator(new StringLengthValidator("Недостаточно символов",3,10,false));
+                        firstName.setNullRepresentation("");
+                        firstName.setNullSettingAllowed(true);
+                        firstName.setValue(user.getItemProperty("firstName").getValue().toString());
+                        firstName.setWidth(100, Unit.PERCENTAGE);
+                        firstName.setIcon(FontAwesome.USER);
+                        firstName.setTabIndex(1);
+                        firstName.focus(); // Set focus to the user name
+
+                        lastName.setDescription("Укажите фамилию");
+                        lastName.setValue(user.getItemProperty("lastName").getValue().toString());
+                        lastName.setWidth(100, Unit.PERCENTAGE);
+                        lastName.setIcon(FontAwesome.USER);
+                        lastName.setTabIndex(2);
+
+                        otchestvo.setDescription("Укажите отчество");
+                        otchestvo.setValue(user.getItemProperty("otchestvo").getValue().toString());
+                        otchestvo.setWidth(100, Unit.PERCENTAGE);
+                        otchestvo.setIcon(FontAwesome.USER);
+                        otchestvo.setTabIndex(3);
+
+                        email.setDescription("Укажите email");
+                        email.setValue(user.getItemProperty("email").getValue().toString());
+                        email.setWidth(100, Unit.PERCENTAGE);
+                        email.setIcon(FontAwesome.INBOX);
+                        email.setTabIndex(4);
+
+                        telephone.setDescription("Укажите телефон");
+                        telephone.setValue(user.getItemProperty("telephone").getValue().toString());
+                        telephone.setWidth(100, Unit.PERCENTAGE);
+                        telephone.setIcon(FontAwesome.PHONE);
+                        telephone.setTabIndex(5);
+
+                        pol.setDescription("Укажите пол");
+                        pol.setValue(user.getItemProperty("pol").getValue().toString());
+                        pol.setWidth(100, Unit.PERCENTAGE);
+                        pol.setIcon(FontAwesome.MALE);
+                        pol.addItems("Мужской", "Женский");
+//                        pol.select("Мужской");
+                        pol.setValue(user.getItemProperty("pol").getValue().toString());
+                        pol.setTextInputAllowed(false);
+                        pol.setNullSelectionAllowed(false);
+                        pol.setTabIndex(6);
+
+                        //Дата рождения. PopUp
+                        popupDateField.setDescription("Укажите дату рождения");
+                        try {
+                                System.out.println("Дата");
+                                date = (Date) user.getItemProperty("birthday").getValue();
+
+                        } catch (Exception e) {
+                                System.out.println(e.getStackTrace());
+                        }
+                        popupDateField.setValue(date);
+                        popupDateField.setWidth(100, Unit.PERCENTAGE);
+                        popupDateField.setIcon(FontAwesome.BIRTHDAY_CAKE);
+
+
+                        popupDateField.setDateFormat("dd-MM-yyyy");
+                        popupDateField.setTextFieldEnabled(false);
+                        popupDateField.setBuffered(true);
+                        popupDateField.setLocale(new Locale("ru"));
+
+
+                        // Добавляем Field на форму.
+                        userFormContent.addComponents(firstName,lastName,otchestvo,email,telephone,pol,popupDateField);
+
+
+                        // Layout отвечающий за кнопки.
+                        HorizontalLayout horizontalLayoutForButton = new HorizontalLayout();
+                        horizontalLayoutForButton.setWidth(100,Unit.PERCENTAGE);
+                        horizontalLayoutForButton.setSpacing(true);
+                        horizontalLayoutForButton.addComponents(updateButton(buttonCreate, grid, usersBeanItemContainer, user, itemId),buttonClose(buttonClose));
+
+                        // Добавляем Layout содержащий кнопки и поля.
+                        verticalLayoutMainForm.addComponents(userFormContent,horizontalLayoutForButton);
+                        verticalLayoutMainForm.setComponentAlignment(userFormContent, Alignment.MIDDLE_CENTER);
+                        verticalLayoutMainForm.setComponentAlignment(horizontalLayoutForButton, Alignment.MIDDLE_CENTER);
+
+
                 }
 
                 return verticalLayoutMainForm;
@@ -249,13 +330,32 @@ public class SubWindowsUI extends Window {
                                         new Users(firstName.getValue(),lastName.getValue(),otchestvo.getValue(),email.getValue(),telephone.getValue(),pol.getValue().toString(),popupDateField.getValue()
                                         ));
                                 close();
-                                Thread.sleep(300);
                                 Notification.show("Пользователь добавлен!");
                                 grid.getSelectionModel().reset();
 
                         }
                 });
                 return  addButtonUser;
+        }
+
+        public Button updateButton(Button updateButton, Grid grid, BeanItemContainer<Users> usersBeanItemContainer,Item user, Object itemId) {
+                updateButton = new Button("Изменить",FontAwesome.CHECK);
+                updateButton.setWidth(100,Unit.PERCENTAGE);
+                updateButton.addClickListener(new Button.ClickListener() {
+                        @SneakyThrows
+                        @Override
+                        public void buttonClick(Button.ClickEvent clickEvent) {
+                                System.out.println("Изменить имя");
+                                usersBeanItemContainer.removeItem(itemId);
+                                user.getItemProperty("firstName").setValue(firstName.getValue());
+                                close();
+//                                grid.getSelectionModel().reset();
+                                Notification.show("Пользователь изменен!");
+
+
+                        }
+                });
+                return  updateButton;
         }
 
 }
