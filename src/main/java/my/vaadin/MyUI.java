@@ -23,6 +23,7 @@ import com.vaadin.ui.renderers.Renderer;
 //import my.vaadin.modalWindows.SubWindows;
 import my.vaadin.modalWindows.SubWindows;
 import my.vaadin.pojo.Users;
+import my.vaadin.subWindowsConfirmation.SubWindowsConfirmation;
 
 
 import javax.servlet.annotation.WebServlet;
@@ -38,8 +39,16 @@ public class MyUI extends UI {
     SimpleDateFormat simpleDateFormat;
     BeanItemContainer<Users> usersBeanItemContainer;
     SubWindows sub;
+    SubWindowsConfirmation subWindowsConfirmation;
     Item user;
     Object userId;
+    public enum Action
+    {
+        CREATE,
+        UPDATE,
+        DELETE,
+        READ
+    }
 
     @Override
     public void init(VaadinRequest request) {
@@ -60,7 +69,6 @@ public class MyUI extends UI {
         verticalLayoutMain.addComponents(verticalLayoutGridAndButton); // Добавляем элементы
         verticalLayoutMain.setComponentAlignment(verticalLayoutGridAndButton, Alignment.MIDDLE_CENTER);
         setContent(verticalLayoutMain); // SetContent
-
 
     }
 
@@ -99,8 +107,20 @@ public class MyUI extends UI {
         grid.setResponsive(false);
         grid.setSelectionMode(Grid.SelectionMode.SINGLE);//Получаем элемент выбранной строки.
 
+        grid.addItemClickListener(doubleClickToGrid ->{
+            grid.getContainerDataSource().getItem(grid.getSelectedRow());
+            Item user = usersBeanItemContainer.getItem(doubleClickToGrid.getItemId()); // Получение выбранного пользователя.!
+            if(doubleClickToGrid.isDoubleClick() && sub == null) {
+                System.out.println("Открытие PopUp окна для просмотра пользователя");
+                SubWindows sub = new SubWindows("Форма просмотра пользователя",usersBeanItemContainer,grid,user,Action.READ);
+                UI.getCurrent().addWindow(sub);
+                // Закрываем окно.
+
+            }
+        });
+
+
         // Задаем название колонок
-//        Grid.Column firstNameColumn = grid.getColumn("firstName");
         Grid.Column firstNameColumn = grid.getColumn("firstName");
         firstNameColumn.setHeaderCaption("Имя");
         firstNameColumn.setResizable(false);
@@ -149,12 +169,12 @@ public class MyUI extends UI {
             System.out.println("Создать");
             // Добавление модального окна.
             if (sub == null) {
-                sub = new SubWindows("Форма создания нового полозователя",usersBeanItemContainer);
+                sub = new SubWindows("Форма создания нового полозователя", usersBeanItemContainer,grid);
                 UI.getCurrent().addWindow(sub); //
-                sub.addCloseListener(closeEvent -> {
-                    sub = null;
-                });
             }
+            sub.addCloseListener(closeEvent -> {
+                sub = null;
+            });
         });
 
         //Кнопка редактирования выбранной записи.
@@ -162,6 +182,24 @@ public class MyUI extends UI {
         updateButton.setDescription("Редактировать выбранного пользователя");
         updateButton.setWidth(100,Unit.PERCENTAGE);
         updateButton.setEnabled(false);
+        grid.addSelectionListener(itemClickEventGrid -> {
+            updateButton.setEnabled(grid.getSelectedRows().size() > 0);
+        });
+        grid.addItemClickListener(itemClickEvent -> {
+            updateButton.setEnabled(true);
+            grid.getContainerDataSource().getItem(grid.getSelectedRow());
+            user = usersBeanItemContainer.getItem(itemClickEvent.getItemId()); // Получение выбранного пользователя.!
+            updateButton.addClickListener(clickButtonEvent -> {
+                if (sub == null) {
+                    sub = new SubWindows("Форма редактирования пользователя", usersBeanItemContainer,grid,user,Action.UPDATE);
+                    UI.getCurrent().addWindow(sub); //
+                }
+                sub.addCloseListener(closeEvent -> {
+                    sub = null;
+                });
+            });
+        });
+
 
         // Кнопка удалить
         Button deleteButton = new Button("Удалить",FontAwesome.CLOSE);
@@ -169,11 +207,29 @@ public class MyUI extends UI {
         deleteButton.setWidth(100,Unit.PERCENTAGE);
         deleteButton.setEnabled(false);
 
+        grid.addSelectionListener(itemClickEventGrid -> {
+            deleteButton.setEnabled(grid.getSelectedRows().size() > 0);
+        });
+        grid.addItemClickListener(itemClickEvent -> {
+            deleteButton.setEnabled(true);
+            grid.getContainerDataSource().getItem(grid.getSelectedRow());
+            user = usersBeanItemContainer.getItem(itemClickEvent.getItemId()); // Получение выбранного пользователя.!
+            deleteButton.addClickListener(clickButtonEvent -> {
+                if (subWindowsConfirmation == null) {
+                    subWindowsConfirmation = new SubWindowsConfirmation("Форма удаления пользователя", usersBeanItemContainer, grid, user);
+                    UI.getCurrent().addWindow(subWindowsConfirmation); //
+                }
+                subWindowsConfirmation.addCloseListener(closeEvent -> {
+                    subWindowsConfirmation = null;
+                });
+            });
+        });
+
 
 
         //Добавляем в горизонтальный Layout horizontalLayoutAligmentButton для выравнивания кнопок.
         HorizontalLayout horizontalLayoutAligmentButton = new HorizontalLayout(textFieldFind,findButton,createButton,updateButton,deleteButton);
-        horizontalLayoutAligmentButton.setWidth(50,Unit.PERCENTAGE);
+        horizontalLayoutAligmentButton.setWidth(70,Unit.PERCENTAGE);
         horizontalLayoutAligmentButton.setSpacing(true);
 
         horizontalLayoutForButton.addComponents(horizontalLayoutAligmentButton);
