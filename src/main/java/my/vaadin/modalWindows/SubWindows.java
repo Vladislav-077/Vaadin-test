@@ -1,11 +1,16 @@
 package my.vaadin.modalWindows;
 
+import com.sun.org.apache.xerces.internal.impl.dv.dtd.StringDatatypeValidator;
 import com.vaadin.data.Item;
 import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.data.validator.*;
 import com.vaadin.server.FontAwesome;
+import com.vaadin.shared.ui.datefield.Resolution;
 import com.vaadin.ui.*;
 import my.vaadin.MyUI;
-import my.vaadin.pojo.Users;
+import my.vaadin.pojo.User;
+
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -22,53 +27,82 @@ public class SubWindows extends Window {
         final PopupDateField popupDateField = new PopupDateField("Дата рождения");
         final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy");
         private Grid grid;
-        private BeanItemContainer<Users> usersBeanItemContainer;
+        private BeanItemContainer<User> usersBeanItemContainer;
         private Item user;
         private String nameButton; // Данная переменная нужна для определения функции вызываемого окна.
         private HorizontalLayout horizontalLayoutFormButton;
-        private VerticalLayout verticalLayoutContentForm;
+        private FormLayout verticalLayoutContentForm;
+        private Button updateButton;
+        private Button createButton;
+        private Enum action;
+        private Date minValueDate;
+        private Date maxValueDate;
+        private SimpleDateFormat dateFormat;
 
 
 
-        //String caption, Item user, Grid grid, BeanItemContainer<Users> usersBeanItemContainer, String nameButton, Object itemI
-        public SubWindows(String caption, BeanItemContainer<Users> usersBeanItemContainer,Grid grid) {
+        //String caption, Item user, Grid grid, BeanItemContainer<User> usersBeanItemContainer, String nameButton, Object itemI
+        public SubWindows(String caption, BeanItemContainer<User> usersBeanItemContainer, Grid grid, Enum action) {
                 super(caption); //Заголовок.
                 System.out.println(user);
                 // Размер окна.
-                this.setHeight("620");
+                this.setHeight("520");
                 this.setWidth("480");
                 this.setModal(true); // Указываем, что окно должно быть модальное, данная настройка блокирует задний фон.
                 this.setResizable(false);  // Запрет на растягивание окна.
                 this.setDraggable(false); // Запрет на перестаскивание окна.
                 this.grid = grid;
                 this.usersBeanItemContainer = usersBeanItemContainer;
-                this.nameButton = nameButton;
-                center();
+                this.action = action;
+                dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                maxValueDate = new Date();
+                try {
+                        minValueDate = dateFormat.parse("01/01/2001");
+                }
+                catch (ParseException e) {
+                        System.out.println("Ошибка парсинга даты");
+                        e.getStackTrace();
+                }
+                System.out.println("Максимальное значение даты " + maxValueDate);
+                System.out.println("Миниммальное значение даты " + minValueDate);
+                center(); //Расположение по центру.
 
                 firstName.setDescription("Укажите имя");
+                firstName.addValidator(new StringLengthValidator("Недостаточная длинна поля",3, 30,false));
+                firstName.addValidator(new RegexpValidator("^[а-яЁёА-Я-]+$",true,"Допустима только кирилица"));
                 firstName.focus(); // Set focus to the user name
                 firstName.setWidth(100, Unit.PERCENTAGE);
                 firstName.setIcon(FontAwesome.USER);
                 firstName.setTabIndex(1);
 
-                lastName.setIcon(FontAwesome.USER);
                 lastName.setDescription("Укажите фамилию");
+                lastName.addValidator(new StringLengthValidator("Недостаточная длинна поля",3, 30,false));
+                lastName.addValidator(new RegexpValidator("^[а-яЁёА-Я-]+$",true,"Допустима только кирилица"));
                 lastName.setWidth(100, Unit.PERCENTAGE);
+                lastName.setIcon(FontAwesome.USER);
                 lastName.setTabIndex(2);
 
-                otchestvo.setIcon(FontAwesome.USER);
+
                 otchestvo.setDescription("Укажите отчество");
+                otchestvo.addValidator(new StringLengthValidator("Недостаточная длинна поля",3, 30,false));
+                otchestvo.addValidator(new RegexpValidator("^[а-яЁёА-Я-]+$",true,"Допустима только кирилица"));
                 otchestvo.setWidth(100, Unit.PERCENTAGE);
+                otchestvo.setIcon(FontAwesome.USER);
                 otchestvo.setTabIndex(3);
 
-                email.setIcon(FontAwesome.INBOX);
                 email.setDescription("Укажите email");
+                email.addValidator(new EmailValidator("Неправильно указан email"));
+//                email.addValidator(new NullValidator("Поле не заполннно",false));
+                email.addValidator(new StringLengthValidator("Поле не заполненно",3,30,false));
                 email.setWidth(100, Unit.PERCENTAGE);
+                email.setIcon(FontAwesome.INBOX);
                 email.setTabIndex(4);
 
-                telephone.setIcon(FontAwesome.PHONE);
                 telephone.setDescription("Укажите телефон");
+                telephone.addValidator(new StringLengthValidator("мин 3 символа мах = 13 символов",3, 13,false));
+                telephone.addValidator(new RegexpValidator("[0-9]+",true,"Допустима только цифры"));
                 telephone.setWidth(100, Unit.PERCENTAGE);
+                telephone.setIcon(FontAwesome.PHONE);
                 telephone.setTabIndex(5);
 
                 pol.setIcon(FontAwesome.MALE);
@@ -87,26 +121,36 @@ public class SubWindows extends Window {
                 popupDateField.setDateFormat("dd/MM/yyyy");
                 popupDateField.setBuffered(true);
                 popupDateField.setLocale(new Locale("ru"));
+                popupDateField.setRangeStart(minValueDate);
+                popupDateField.setRangeEnd(maxValueDate);
 
 
                 //Горизонтальный Layout с кнопками.
-                horizontalLayoutFormButton = new HorizontalLayout(createButton(),closeButton()); // Кнопки создаем через метод
+                createButton = new Button();
+                buttonCreateAndUpdate(action);
+
+                Button closeButton = closeButton();
+                horizontalLayoutFormButton = new HorizontalLayout(createButton,closeButton); // Кнопки создаем через метод
                 horizontalLayoutFormButton.setSpacing(true);
-                horizontalLayoutFormButton.setWidth(100,Unit.PERCENTAGE);
+                horizontalLayoutFormButton.setWidth(80,Unit.PERCENTAGE);
 
                 //Вертикальный Layout с полями.
-                verticalLayoutContentForm = new VerticalLayout(firstName, lastName, otchestvo, email, telephone, pol, popupDateField,horizontalLayoutFormButton);
-                verticalLayoutContentForm.setWidth(70,Unit.PERCENTAGE);
+                verticalLayoutContentForm = new FormLayout(firstName, lastName, otchestvo, email, telephone, pol, popupDateField);
+                verticalLayoutContentForm.setWidth(90,Unit.PERCENTAGE);
                 verticalLayoutContentForm.setSpacing(true);
 
                 //Главный слой совмещающий поля и кнопки.
-                VerticalLayout verticalLayoutMain = new VerticalLayout(verticalLayoutContentForm);
+                VerticalLayout verticalLayoutMain = new VerticalLayout(verticalLayoutContentForm, horizontalLayoutFormButton);
+                verticalLayoutMain.setWidth(100,Unit.PERCENTAGE);
                 verticalLayoutMain.setComponentAlignment(verticalLayoutContentForm,Alignment.MIDDLE_CENTER);
+                verticalLayoutMain.setComponentAlignment(horizontalLayoutFormButton,Alignment.MIDDLE_CENTER);
                 setContent(verticalLayoutMain);
 
+//                setListeners(); //добавляем листенеры
+
         }
-        public SubWindows(String caption, BeanItemContainer<Users> usersBeanItemContainer,Grid grid,Item user,Enum action) {
-                this(caption,usersBeanItemContainer,grid);
+        public SubWindows(String caption, BeanItemContainer<User> usersBeanItemContainer, Grid grid, Item user,Enum action) {
+                this(caption,usersBeanItemContainer,grid,action);
                 this.user = user;
                 firstName.setValue(user.getItemProperty("firstName").getValue().toString());
                 firstName.setEnabled(false);
@@ -144,9 +188,12 @@ public class SubWindows extends Window {
                         pol.setEnabled(true);
                         popupDateField.setEnabled(true);
                         horizontalLayoutFormButton.removeAllComponents();
-                        Button createButton = createButton();
-                        createButton.setCaption("Подтвердить");
-                        horizontalLayoutFormButton.addComponents(createButton,closeButton());
+
+                        //Инициализация кнопки updateButton
+                        updateButton = new Button();
+                        buttonCreateAndUpdate(action);
+
+                        horizontalLayoutFormButton.addComponents(updateButton,closeButton());
                 }
 
 
@@ -161,19 +208,42 @@ public class SubWindows extends Window {
                         return  closeButton;
         }
 
-        // Кнопка добавления нового пользователя.
-        public Button createButton(){
-                Button createButton = new Button("Добавить",FontAwesome.CHECK);
-                createButton.setWidth(100,Unit.PERCENTAGE);
-
-                createButton.addClickListener(event ->{
-                        usersBeanItemContainer.addBean(
-                                new Users(firstName.getValue(),lastName.getValue(),otchestvo.getValue(),email.getValue(),telephone.getValue(),pol.getValue().toString(),popupDateField.getValue()
-                                ));
-                        close();
-                        grid.getSelectionModel().reset();
-                        Notification.show("Пользователь добавлен!");
-                });
-                return  createButton;
+        // Кнопка обновления пользователя.
+        public void buttonCreateAndUpdate(Enum action) {
+                if (action.equals(MyUI.Action.UPDATE)) {
+                        updateButton = new Button("Подтвердить", FontAwesome.CHECK);
+                        updateButton.setWidth(100, Unit.PERCENTAGE);
+                        for (Object itemId : grid.getSelectedRows()) {
+                                grid.getContainerDataSource().removeItem(itemId);
+                                grid.getSelectionModel().reset();
+                        }
+                        updateButton.addClickListener(event -> {
+                                if (firstName.isValid() && lastName.isValid() && otchestvo.isValid() && email.isValid() && telephone.isValid() && pol.isValid() && popupDateField.isValid()) {
+                                        usersBeanItemContainer.addBean(
+                                                new User(firstName.getValue(), lastName.getValue(), otchestvo.getValue(), email.getValue(), telephone.getValue(), pol.getValue().toString(), popupDateField.getValue()
+                                                ));
+                                        grid.getSelectionModel().reset();
+                                        grid.clearSortOrder();
+                                        close();
+                                        Notification.show("Пользователь изменен!");
+                                }
+                                else Notification.show("Проверьте правильность заполненых полей !");
+                        });
+                }
+                else if (action.equals(MyUI.Action.CREATE)) {
+                        createButton = new Button("Добавить",FontAwesome.CHECK);
+                        createButton.setWidth(100,Unit.PERCENTAGE);
+                        createButton.addClickListener(event ->{
+                                if (firstName.isValid() && lastName.isValid() && otchestvo.isValid() && email.isValid() && telephone.isValid() && pol.isValid() && popupDateField.isValid()) {
+                                        usersBeanItemContainer.addBean(
+                                                new User(firstName.getValue(), lastName.getValue(), otchestvo.getValue(), email.getValue(), telephone.getValue(), pol.getValue().toString(), popupDateField.getValue()
+                                                ));
+                                        close();
+                                        grid.getSelectionModel().reset();
+                                        Notification.show("Пользователь добавлен!");
+                                }
+                                else Notification.show("Проверьте правильность заполненых полей !");
+                        });
+                }
         }
 }

@@ -4,29 +4,35 @@ import com.vaadin.data.Item;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.*;
-import my.vaadin.pojo.Users;
+import com.vaadin.ui.themes.Reindeer;
+import my.vaadin.pojo.User;
 
 public class SubWindowsConfirmation extends Window {
     private Grid grid;
-    private BeanItemContainer<Users> usersBeanItemContainer;
+    private BeanItemContainer<User> usersBeanItemContainer;
     private Item user;
     private String nameButton; // Данная переменная нужна для определения функции вызываемого окна.
     private HorizontalLayout horizontalLayoutFormButton;
     private VerticalLayout verticalLayoutContentForm;
 
 
-    public SubWindowsConfirmation(String caption, BeanItemContainer<Users> usersBeanItemContainer, Grid grid,Item user) {
+    public SubWindowsConfirmation(String caption, BeanItemContainer<User> usersBeanItemContainer, Grid grid, Item user) {
         super(caption); //Заголовок.
         // Размер окна.
-        this.setHeight("320");
+        this.setHeight("250");
         this.setWidth("480");
         this.setModal(true); // Указываем, что окно должно быть модальное, данная настройка блокирует задний фон.
         this.setResizable(false);  // Запрет на растягивание окна.
         this.setDraggable(false); // Запрет на перестаскивание окна.
         this.grid = grid;
         this.usersBeanItemContainer = usersBeanItemContainer;
-        this.nameButton = nameButton;
+        this.user = user;
         center();
+
+        Label label = new Label("Удалить пользователя : " + user.getItemProperty("firstName").getValue());
+        label.setWidth(80,Unit.PERCENTAGE);
+        label.addStyleName(Reindeer.LABEL_H2);
+
 
 
         Button closeButton = new Button("Закрыть", FontAwesome.CLOSE);
@@ -52,8 +58,9 @@ public class SubWindowsConfirmation extends Window {
         horizontalLayoutButton.setSpacing(true);
         horizontalLayoutButton.setWidth(70,Unit.PERCENTAGE);
 
-        VerticalLayout verticalLayoutContent = new VerticalLayout(horizontalLayoutButton);
+        VerticalLayout verticalLayoutContent = new VerticalLayout(label,horizontalLayoutButton);
         verticalLayoutContent.setComponentAlignment(horizontalLayoutButton,Alignment.MIDDLE_CENTER);
+        verticalLayoutContent.setComponentAlignment(label,Alignment.MIDDLE_CENTER);
         verticalLayoutContent.setHeight(100,Unit.PERCENTAGE);
         setContent(verticalLayoutContent);
     }

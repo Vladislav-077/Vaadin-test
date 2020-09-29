@@ -13,6 +13,7 @@ import com.vaadin.annotations.Title;
 import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.data.Item;
 import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.data.util.filter.SimpleStringFilter;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServlet;
@@ -21,8 +22,9 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.renderers.DateRenderer;
 import com.vaadin.ui.renderers.Renderer;
 //import my.vaadin.modalWindows.SubWindows;
+import com.vaadin.ui.themes.ValoTheme;
 import my.vaadin.modalWindows.SubWindows;
-import my.vaadin.pojo.Users;
+import my.vaadin.pojo.User;
 import my.vaadin.subWindowsConfirmation.SubWindowsConfirmation;
 
 
@@ -35,9 +37,9 @@ import java.util.Collection;
 @Theme("mytheme")
 public class MyUI extends UI {
     Grid grid; // Создание таблицы.
-    Collection<Users> usersArrayList;
+    Collection<User> userArrayList;
     SimpleDateFormat simpleDateFormat;
-    BeanItemContainer<Users> usersBeanItemContainer;
+    BeanItemContainer<User> usersBeanItemContainer;
     SubWindows sub;
     SubWindowsConfirmation subWindowsConfirmation;
     Item user;
@@ -46,7 +48,6 @@ public class MyUI extends UI {
     {
         CREATE,
         UPDATE,
-        DELETE,
         READ
     }
 
@@ -75,15 +76,15 @@ public class MyUI extends UI {
 
     public void gridCollectionUsers(VerticalLayout verticalLayoutGridAndButton, HorizontalLayout horizontalLayoutForButton) {
 
-        //Коллекция Users
+        //Коллекция User
         simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
-        usersArrayList = new ArrayList<>();
+        userArrayList = new ArrayList<>();
         try {
-            usersArrayList.add(new Users("Владислав", "Абовян", "Евгеньевич", "blad_04@mail.ru", "89152091205", "Мужской", simpleDateFormat.parse("22/08/1997")));
-            usersArrayList.add(new Users("Егор", "Муганов", "Иванович", "egor_04@mail.ru", "89152091205", "Мужской", simpleDateFormat.parse("05/08/2020")));
-            usersArrayList.add(new Users("Антон", "Антон", "Антонович", "anton_04@mail.ru", "89152091205", "Мужской", simpleDateFormat.parse("01/03/1998")));
-            usersArrayList.add(new Users("Илья", "Ильин", "Ильич", "ilya_04@mail.ru", "89152091205", "Мужской", simpleDateFormat.parse("22/05/2003")));
-            usersArrayList.add(new Users("Григорий", "Мелихов", "Анатольевич", "grigor_04@mail.ru", "89152091205", "Женский", simpleDateFormat.parse("30/07/1974")));
+            userArrayList.add(new User("Владислав", "Абовян", "Евгеньевич", "blad_04@mail.ru", "89152091205", "Мужской", simpleDateFormat.parse("22/08/1997")));
+            userArrayList.add(new User("Егор", "Муганов", "Иванович", "egor_04@mail.ru", "89152091205", "Мужской", simpleDateFormat.parse("05/08/2020")));
+            userArrayList.add(new User("Антон", "Антон", "Антонович", "anton_04@mail.ru", "89152091205", "Мужской", simpleDateFormat.parse("01/03/1998")));
+            userArrayList.add(new User("Илья", "Ильин", "Ильич", "ilya_04@mail.ru", "89152091205", "Мужской", simpleDateFormat.parse("22/05/2003")));
+            userArrayList.add(new User("Григорий", "Мелихов", "Анатольевич", "grigor_04@mail.ru", "89152091205", "Женский", simpleDateFormat.parse("30/07/1974")));
         }
         catch (Exception e ) {
             System.out.println(e.getStackTrace());
@@ -91,8 +92,8 @@ public class MyUI extends UI {
 
 
 
-        //Создаем контейнер для хранения данных, и помещаем в него колликцию с объектами Users
-        usersBeanItemContainer = new BeanItemContainer<Users>(Users.class, usersArrayList);
+        //Создаем контейнер для хранения данных, и помещаем в него колликцию с объектами User
+        usersBeanItemContainer = new BeanItemContainer<User>(User.class, userArrayList);
 
         // Создаем сетку привязанную к контейнеру.
         grid = new Grid(usersBeanItemContainer); //Инициализация объекта Grid, с помещенным контейнером.
@@ -154,11 +155,40 @@ public class MyUI extends UI {
         TextField textFieldFind = new TextField();
         textFieldFind.setDescription("поле поиска");
         textFieldFind.setWidth(100,Unit.PERCENTAGE);
+        textFieldFind.setInputPrompt("Найти");
+        textFieldFind.setTextChangeEventMode(AbstractTextField.TextChangeEventMode.EAGER);
+
+
+        /* START FIND поиск сразу в текстовом поле*/
+//        textFieldFind.addTextChangeListener(change -> {
+//            usersBeanItemContainer.removeContainerFilters("firstName");
+//            if (! change.getText().isEmpty()) {
+////                new SimpleStringFilter(textFieldFind.getValue(),
+////                        change.getText(), true, false));
+//                usersBeanItemContainer.addContainerFilter(new SimpleStringFilter("firstName", textFieldFind.getValue(), true, false));
+//            }
+//            else
+//                System.out.println("Не прошла фильтрация");
+//        });
+
+        /* END FIND*/
 
         //Кнопка найти.
         Button findButton = new Button("Найти",FontAwesome.GOOGLE);
         findButton.setCaption("Найти");
         findButton.setWidth(100,Unit.PERCENTAGE);
+        findButton.addClickListener(clickEvent -> {
+            System.out.println(textFieldFind.getValue());
+            System.out.println("Коллекция");
+            usersBeanItemContainer.removeContainerFilters("firstName");
+            if (!textFieldFind.getValue().isEmpty()) {
+                usersBeanItemContainer.addContainerFilter(new SimpleStringFilter("firstName", textFieldFind.getValue(), true, false));
+            }
+            else {
+                System.out.println("Обнуление фильтрации ");
+                usersBeanItemContainer.removeContainerFilters("firstName"); // Удаляем фильтрацию
+            }
+        });
 
 
         //Кнопка создать
@@ -169,7 +199,7 @@ public class MyUI extends UI {
             System.out.println("Создать");
             // Добавление модального окна.
             if (sub == null) {
-                sub = new SubWindows("Форма создания нового полозователя", usersBeanItemContainer,grid);
+                sub = new SubWindows("Форма создания нового полозователя", usersBeanItemContainer,grid,Action.CREATE);
                 UI.getCurrent().addWindow(sub); //
             }
             sub.addCloseListener(closeEvent -> {

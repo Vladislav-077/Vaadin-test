@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.Date;
 
 @Data
-public class Users{
+public class User {
 
     private String firstName;
     private String lastName;
@@ -15,7 +15,7 @@ public class Users{
     private String pol;
     private Date birthday;
 
-    public Users(String firstName, String lastName, String otchestvo, String email, String telephone,String pol, Date birthday ) {
+    public User(String firstName, String lastName, String otchestvo, String email, String telephone, String pol, Date birthday ) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.otchestvo = otchestvo;

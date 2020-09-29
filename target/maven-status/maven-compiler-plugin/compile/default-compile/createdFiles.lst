@@ -1,4 +1,3 @@
-my\vaadin\pojo\Users.class
-my\vaadin\MyUI$Action.class
-my\vaadin\subWindowsConfirmation\SubWindowsConfirmation.class
-my\vaadin\modalWindows\SubWindows.class
+my/vaadin/subWindowsConfirmation/SubWindowsConfirmation.class
+my/vaadin/MyUI$Action.class
+my/vaadin/pojo/User.class
