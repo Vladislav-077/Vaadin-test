@@ -14,15 +14,11 @@ import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.data.Item;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.filter.SimpleStringFilter;
-import com.vaadin.server.FontAwesome;
-import com.vaadin.server.VaadinRequest;
-import com.vaadin.server.VaadinServlet;
+import com.vaadin.server.*;
 import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.renderers.DateRenderer;
 import com.vaadin.ui.renderers.Renderer;
-//import my.vaadin.modalWindows.SubWindows;
-import com.vaadin.ui.themes.ValoTheme;
 import my.vaadin.modalWindows.SubWindows;
 import my.vaadin.pojo.User;
 import my.vaadin.subWindowsConfirmation.SubWindowsConfirmation;
@@ -70,6 +66,10 @@ public class MyUI extends UI {
         verticalLayoutMain.addComponents(verticalLayoutGridAndButton); // Добавляем элементы
         verticalLayoutMain.setComponentAlignment(verticalLayoutGridAndButton, Alignment.MIDDLE_CENTER);
         setContent(verticalLayoutMain); // SetContent
+
+        // Сообщение сервера при ошибке соединения.
+        ReconnectDialogConfiguration configuration = UI.getCurrent().getReconnectDialogConfiguration();
+        configuration.setDialogText("Связь с сервером потеряна...");
 
     }
 
@@ -281,5 +281,6 @@ public class MyUI extends UI {
     @VaadinServletConfiguration(ui = MyUI.class, productionMode = false)
     public static class MyUIServlet extends VaadinServlet {
     }
+
 
 }

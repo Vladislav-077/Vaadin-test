@@ -2,11 +2,13 @@ package my.vaadin.modalWindows;
 
 import com.sun.org.apache.xerces.internal.impl.dv.dtd.StringDatatypeValidator;
 import com.vaadin.data.Item;
+import com.vaadin.data.Validator;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.validator.*;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.datefield.Resolution;
 import com.vaadin.ui.*;
+import lombok.NonNull;
 import my.vaadin.MyUI;
 import my.vaadin.pojo.User;
 
@@ -92,15 +94,22 @@ public class SubWindows extends Window {
 
                 email.setDescription("Укажите email");
                 email.addValidator(new EmailValidator("Неправильно указан email"));
-//                email.addValidator(new NullValidator("Поле не заполннно",false));
                 email.addValidator(new StringLengthValidator("Поле не заполненно",3,30,false));
                 email.setWidth(100, Unit.PERCENTAGE);
                 email.setIcon(FontAwesome.INBOX);
                 email.setTabIndex(4);
 
+
                 telephone.setDescription("Укажите телефон");
-                telephone.addValidator(new StringLengthValidator("мин 3 символа мах = 13 символов",3, 13,false));
-                telephone.addValidator(new RegexpValidator("[0-9]+",true,"Допустима только цифры"));
+                telephone.addValidator(new RegexpValidator("^((8|\\+7)[\\- ]?)?(\\(?\\d{3}\\)?[\\- ]?)?[\\d\\- ]{7,10}$",true,"Некорректный формат телефонного номера"));
+                telephone.addValidator(new Validator() {
+                        @Override
+                        public void validate(Object o) throws InvalidValueException {
+                                if (o.toString().equals("") || o.toString().isEmpty()) {
+                                        throw new InvalidValueException("Поле не заполнено!");
+                                }
+                        }
+                });
                 telephone.setWidth(100, Unit.PERCENTAGE);
                 telephone.setIcon(FontAwesome.PHONE);
                 telephone.setTabIndex(5);
