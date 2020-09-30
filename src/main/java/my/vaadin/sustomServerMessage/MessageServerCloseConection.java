@@ -8,6 +8,9 @@ import com.vaadin.ui.ReconnectDialogConfiguration;
 
 public class MessageServerCloseConection extends CustomizedSystemMessages {
 
+    public MessageServerCloseConection(String caption ,String message) {
+        setSessionExpiredCaption(caption);
+        setAuthenticationErrorMessage(message);
 
-
+    }
 }
