@@ -218,7 +218,6 @@ public class MyUI extends UI {
         });
         grid.addItemClickListener(itemClickEvent -> {
             updateButton.setEnabled(true);
-            grid.getContainerDataSource().getItem(grid.getSelectedRow());
             user = usersBeanItemContainer.getItem(itemClickEvent.getItemId()); // Получение выбранного пользователя.!
             updateButton.addClickListener(clickButtonEvent -> {
                 if (sub == null) {

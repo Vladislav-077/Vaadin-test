@@ -20,7 +20,7 @@ public class SubWindowsConfirmation extends Window {
         super(caption); //Заголовок.
         // Размер окна.
         this.setHeight("250");
-        this.setWidth("480");
+        this.setWidth("570");
         this.setModal(true); // Указываем, что окно должно быть модальное, данная настройка блокирует задний фон.
         this.setResizable(false);  // Запрет на растягивание окна.
         this.setDraggable(false); // Запрет на перестаскивание окна.
@@ -30,7 +30,7 @@ public class SubWindowsConfirmation extends Window {
         center();
 
         Label label = new Label("Удалить пользователя : " + user.getItemProperty("firstName").getValue());
-        label.setWidth(80,Unit.PERCENTAGE);
+        label.setWidth(75,Unit.PERCENTAGE);
         label.addStyleName(Reindeer.LABEL_H2);
 
 

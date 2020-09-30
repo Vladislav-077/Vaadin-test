@@ -134,6 +134,7 @@ public class SubWindows extends Window {
                 popupDateField.setRangeEnd(maxValueDate);
 
 
+
                 //Горизонтальный Layout с кнопками.
                 createButton = new Button();
                 buttonCreateAndUpdate(action);
@@ -222,12 +223,12 @@ public class SubWindows extends Window {
                 if (action.equals(MyUI.Action.UPDATE)) {
                         updateButton = new Button("Подтвердить", FontAwesome.CHECK);
                         updateButton.setWidth(100, Unit.PERCENTAGE);
-                        for (Object itemId : grid.getSelectedRows()) {
-                                grid.getContainerDataSource().removeItem(itemId);
-                                grid.getSelectionModel().reset();
-                        }
                         updateButton.addClickListener(event -> {
                                 if (firstName.isValid() && lastName.isValid() && otchestvo.isValid() && email.isValid() && telephone.isValid() && pol.isValid() && popupDateField.isValid()) {
+                                        for (Object itemId : grid.getSelectedRows()) {
+                                                grid.getContainerDataSource().removeItem(itemId);
+                                                grid.getSelectionModel().reset();
+                                        }
                                         usersBeanItemContainer.addBean(
                                                 new User(firstName.getValue(), lastName.getValue(), otchestvo.getValue(), email.getValue(), telephone.getValue(), pol.getValue().toString(), popupDateField.getValue()
                                                 ));
